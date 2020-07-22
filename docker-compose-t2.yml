@@ -90,9 +90,12 @@ services:
     volumes:
       - $USERDIR/docker/traefik2/rules:/rules # file provider directory
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - $USERDIR/docker/traefik2/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
-      - $USERDIR/docker/traefik2/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
-      - $USERDIR/docker/shared:/shared
+#      - $USERDIR/docker/traefik2/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
+      - /home/ozzy/docker/traefik2/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
+#      - $USERDIR/docker/traefik2/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
+      - /home/ozzy/docker/traefik2/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
+#      - $USERDIR/docker/shared:/shared
+      - /home/ozzy/docker/shared:/shared
     environment:
       - CF_API_EMAIL=$CLOUDFLARE_EMAIL
       - CF_API_KEY=$CLOUDFLARE_API_KEY

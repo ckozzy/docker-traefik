@@ -4,24 +4,30 @@ This is the updated docker-compose repo of all the media and home server apps de
 
 - Docker Media Server with Traefik 2 Reverse Proxy: [https://www.smarthomebeginner.com/traefik-2-docker-tutorial/](https://www.smarthomebeginner.com/traefik-2-docker-tutorial/)
 - Cloudflare Settings for Traefik Docker: DDNS, CNAMEs, & Tweaks: [https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/](https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/)
+- Synology Docker Media Server with Traefik, Docker Compose, and Cloudflare: [https://www.smarthomebeginner.com/synology-docker-media-server/](https://www.smarthomebeginner.com/synology-docker-media-server/)
+- Docker with Google OAuth 2 - [https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/](https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/)
 
 ### Old Posts:
 
-The following 3 posts have been combined and updated for Traefik v2 (linked above):
+The following posts have been combined and updated for Traefik v2 (linked above):
 
 - Docker Media Server without Reverse Proxy (- [https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/](https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/)
 - Docker Media Server with Traefik 1 Reverse Proxy - [https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/](https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/)
-- Docker with Google OAuth 2 - [https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/](https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/)
 
 ## A Note on Traefik 1 vs Traefik 2?
 
 <strong>Update (April 19, 2020):</strong> I have switched from Traefik v1 to Traefik v2, which is now my default. Therefore, the setup for Traefik v1 will only receive minor updates (if any). If you are new, follow instructions for Traefik v2.
 
-### Traefik 2 (CURRENT)
+### Traefik 2 (CURRENT - GENERIC LINUX)
 
 - docker-compose-t2.yml
 - docker-compose-t2-vpn.yml
 - docker-compose-t2-obsolete.yml (Apps that I do not use anymore)
+
+### Traefik 2 (CURRENT - SYNOLOGY)
+
+- docker-compose-synology-t2.yml (Apps that I run on Synology NAS using Docker Compose)
+- Almost any app from the Traefik v2 docker-compose files listed above can be copy-pasted to the Synology Docker-Compose. I run a few on Synology and the rest on my Intel NUC Linux home server.
 
 ### Traefik 1 (NOT ACTIVELY MAINTAINED)
 
