@@ -61,13 +61,13 @@ services:
 #      - --accessLog.filters.statusCodes=400-499 # ko not in tutorial
       - --providers.docker=true
       - --providers.docker.endpoint=unix:///var/run/docker.sock
-      - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME`)
+# ko2      - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME`)
       - --providers.docker.exposedByDefault=false
       # - --entrypoints.https.http.middlewares=chain-authelia@file
       # Add dns-cloudflare as default certresolver for all services. Also enables TLS and no need to specify on individual services.
-      # - --entrypoints.https.http.tls.certresolver=dns-cloudflare
-      # - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME # ko in github not tutorial
-      # - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME # ko in github not tutorial
+      - --entrypoints.https.http.tls.certresolver=dns-cloudflare
+      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME # ko in github not tutorial
+      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME # ko in github not tutorial
       # - --entrypoints.https.http.tls.domains[1].main=$DOMAIN # Pulls main cert for second domain
       # - --entrypoints.https.http.tls.domains[1].sans=*.$DOMAIN # Pulls wildcard cert for second domain
       - --providers.docker.network=t2_proxy
@@ -79,8 +79,8 @@ services:
       - --certificatesResolvers.dns-cloudflare.acme.email=$CLOUDFLARE_EMAIL
       - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
-#      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53 # ko not in tutorial
-#      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.delayBeforeCheck=90 # ko not in tutorial To delay DNS check and reduce LE hitrate
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53 # ko not in tutorial
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.delayBeforeCheck=90 # ko not in tutorial To delay DNS check and reduce LE hitrate
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.254 # You can specify a static IP
@@ -153,19 +153,24 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
+    ports:
+      - "4181:4181"
     # Allow apps to bypass OAuth. Radarr example below will bypass OAuth if API key is present in the request (eg. from NZB360 mobile app).
     # While this is one way, the recommended way is to bypass authentication using Traefik labels shown in some of the apps later.
     # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
     # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
     environment:
-      - CLIENT_ID=$GOOGLE_CLIENT_ID
-      - CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+# ko3 3 lines      # - CLIENT_ID=$GOOGLE_CLIENT_ID
+      # - CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+      # - SECRET=$OAUTH_SECRET
+      - PROVIDERS_GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_SECRET
+      - PROVIDERS_GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
       - SECRET=$OAUTH_SECRET
 # ko 3      # - CLIENT_ID=/run/secrets/google_client_id
       # - CLIENT_SECRET=/run/secrets/google_client_secret
       # - SECRET=/run/secrets/oauth_secret
       - COOKIE_DOMAIN=$DOMAINNAME
-      - INSECURE_COOKIE=false
+      - INSECURE_COOKIE=true
       - AUTH_HOST=oauth.$DOMAINNAME
       - URL_PATH=/_oauth
 #      - WHITELIST_FILE=/run/secrets/my_email # ko
@@ -184,7 +189,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.oauth-rtr.entrypoints=https"
-      - "traefik.http.routers.oauth-rtr.rule=HostHeader(`oauth.$DOMAINNAME`)" # ko guessing Header gonna kill
+#      - "traefik.http.routers.oauth-rtr.rule=HostHeader(`oauth.$DOMAINNAME`)" # ko guessing Header gonna kill
       - "traefik.http.routers.oauth-rtr.rule=Host(`oauth.$DOMAINNAME`)"
       - "traefik.http.routers.oauth-rtr.tls=true" # in tutorial but not github
       ## Middlewares
@@ -192,6 +197,22 @@ services:
       ## HTTP Services
       - "traefik.http.routers.oauth-rtr.service=oauth-svc"
       - "traefik.http.services.oauth-svc.loadbalancer.server.port=4181"
+
+
+  whoami:
+    image: containous/whoami
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.oauth-rtr.entrypoints=https"
+      # - "traefik.http.routers.whoami.rule=Host(`whoami.kozzy.org`)"
+      # - "traefik.http.routers.whoami.middlewares=traefik-forward-auth"
+      # - "traefik.http.routers.oauth-rtr.entrypoints=https"
+      #
+      - "traefik.http.routers.oauth-rtr.rule=Host(`whoami.$DOMAINNAME`)"
+      - "traefik.http.routers.oauth-rtr.tls=true" # in tutorial but not github
+
+
 
 #   # Authelia (Lite) - Self-Hosted Single Sign-On and Two-Factor Authentication
 #   authelia:
