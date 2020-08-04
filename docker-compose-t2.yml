@@ -75,7 +75,7 @@ services:
       - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory.
       # - --providers.file.filename=/path/to/file # Load dynamic configuration from a file.
       - --providers.file.watch=true # Only works on top level files in the rules folder
-      - --certificatesResolvers.dns-cloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory # LetsEncrypt Staging Server - uncomment when testing
+#      - --certificatesResolvers.dns-cloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory # LetsEncrypt Staging Server - uncomment when testing
       - --certificatesResolvers.dns-cloudflare.acme.email=$CLOUDFLARE_EMAIL
       - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
@@ -138,55 +138,60 @@ services:
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       ## Middlewares
 #      - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file"
-# ko      - "traefik.http.routers.traefik-rtr.middlewares=chain-oauth@file"
-      - "traefik.http.routers.traefik-rtr.middlewares=middlewares-basic-auth@file"
+      - "traefik.http.routers.traefik-rtr.middlewares=chain-oauth@file"
+#      - "traefik.http.routers.traefik-rtr.middlewares=middlewares-basic-auth@file"
 
- #  # Google OAuth - Single Sign On using OAuth 2.0
-#   # https://hub.docker.com/r/thomseddon/traefik-forward-auth
-#   # https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/
-#   oauth:
-#     container_name: oauth
-#     image: thomseddon/traefik-forward-auth:latest
-#     # image: thomseddon/traefik-forward-auth:2.1-arm # Use this image with Raspberry Pi
-#     restart: unless-stopped
-#     networks:
-#       - t2_proxy
-#     security_opt:
-#       - no-new-privileges:true
-#     # Allow apps to bypass OAuth. Radarr example below will bypass OAuth if API key is present in the request (eg. from NZB360 mobile app).
-#     # While this is one way, the recommended way is to bypass authentication using Traefik labels shown in some of the apps later.
-#     # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
-#     # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
-#     environment:
-#       - CLIENT_ID=/run/secrets/google_client_id
-#       - CLIENT_SECRET=/run/secrets/google_client_secret
-#       - SECRET=/run/secrets/oauth_secret
-#       - COOKIE_DOMAIN=$DOMAINNAME
-#       - INSECURE_COOKIE=false
-#       - AUTH_HOST=oauth.$DOMAINNAME
-#       - URL_PATH=/_oauth
-#       - WHITELIST_FILE=/run/secrets/my_email
-#       - LOG_LEVEL=warn
-#       - LOG_FORMAT=text
-#       - LIFETIME=2592000 # 30 days
-#       - DEFAULT_ACTION=auth
-#       - DEFAULT_PROVIDER=google
-#     secrets:
-#       - google_client_id
-#       - google_client_secret
-#       - oauth_secret
-#       - my_email
-#     labels:
-#       - "traefik.enable=true"
-#       ## HTTP Routers
-#       - "traefik.http.routers.oauth-rtr.entrypoints=https"
-#       - "traefik.http.routers.oauth-rtr.rule=HostHeader(`oauth.$DOMAINNAME`)"
-# #      - "traefik.http.routers.oauth-rtr.tls=true" # in tutorial but not github
-#       ## Middlewares
-#       - "traefik.http.routers.oauth-rtr.middlewares=chain-oauth@file"
-#       ## HTTP Services
-#       - "traefik.http.routers.oauth-rtr.service=oauth-svc"
-#       - "traefik.http.services.oauth-svc.loadbalancer.server.port=4181"
+# Google OAuth - Single Sign On using OAuth 2.0
+  # https://hub.docker.com/r/thomseddon/traefik-forward-auth
+  # https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/
+  oauth:
+    container_name: oauth
+    image: thomseddon/traefik-forward-auth:latest
+    # image: thomseddon/traefik-forward-auth:2.1-arm # Use this image with Raspberry Pi
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    # Allow apps to bypass OAuth. Radarr example below will bypass OAuth if API key is present in the request (eg. from NZB360 mobile app).
+    # While this is one way, the recommended way is to bypass authentication using Traefik labels shown in some of the apps later.
+    # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
+    # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
+    environment:
+      - CLIENT_ID=$GOOGLE_CLIENT_ID
+      - CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+      - SECRET=$OAUTH_SECRET
+# ko 3      # - CLIENT_ID=/run/secrets/google_client_id
+      # - CLIENT_SECRET=/run/secrets/google_client_secret
+      # - SECRET=/run/secrets/oauth_secret
+      - COOKIE_DOMAIN=$DOMAINNAME
+      - INSECURE_COOKIE=false
+      - AUTH_HOST=oauth.$DOMAINNAME
+      - URL_PATH=/_oauth
+#      - WHITELIST_FILE=/run/secrets/my_email # ko
+      - WHITELIST=$MY_EMAIL
+      - LOG_LEVEL=info    # ko was warn
+      - LOG_FORMAT=text
+      - LIFETIME=2592000 # 30 days
+      # - DEFAULT_ACTION=auth  # ko not on tutorial
+      # - DEFAULT_PROVIDER=google
+    # secrets:   # ko not in tutorial
+    #   - google_client_id
+    #   - google_client_secret
+    #   - oauth_secret
+    #   - my_email
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.oauth-rtr.entrypoints=https"
+      - "traefik.http.routers.oauth-rtr.rule=HostHeader(`oauth.$DOMAINNAME`)" # ko guessing Header gonna kill
+      - "traefik.http.routers.oauth-rtr.rule=Host(`oauth.$DOMAINNAME`)"
+      - "traefik.http.routers.oauth-rtr.tls=true" # in tutorial but not github
+      ## Middlewares
+      - "traefik.http.routers.oauth-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.oauth-rtr.service=oauth-svc"
+      - "traefik.http.services.oauth-svc.loadbalancer.server.port=4181"
 
 #   # Authelia (Lite) - Self-Hosted Single Sign-On and Two-Factor Authentication
 #   authelia:
@@ -236,11 +241,12 @@ services:
       ## HTTP Routers
       - "traefik.http.routers.portainer-rtr.entrypoints=https"
       - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME`)" # was host header
-#      - "traefik.http.routers.portainer-rtr.rule=HostHeader(`portainer.$DOMAINNAME`)"
+      - "traefik.http.routers.portainer-rtr.tls=true"
+      #      - "traefik.http.routers.portainer-rtr.rule=HostHeader(`portainer.$DOMAINNAME`)"
       ## Middlewares
 # ko      - "traefik.http.routers.portainer-rtr.middlewares=chain-no-auth@file" # No Authentication
-      - "traefik.http.routers.portainer-rtr.middlewares=chain-basic-auth@file" # Basic Authentication
-      # - "traefik.http.routers.portainer-rtr.middlewares=chain-oauth@file" # Google OAuth 2.0
+#      - "traefik.http.routers.portainer-rtr.middlewares=chain-basic-auth@file" # Basic Authentication
+      - "traefik.http.routers.portainer-rtr.middlewares=chain-oauth@file" # Google OAuth 2.0
 # ko      - "traefik.http.routers.portainer-rtr.middlewares=chain-authelia@file" # Authelia
       ## HTTP Services
       - "traefik.http.routers.portainer-rtr.service=portainer-svc"
