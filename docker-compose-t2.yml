@@ -51,7 +51,7 @@ services:
       - --entrypoints.https.forwardedHeaders.trustedIPs=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/12,172.64.0.0/13,131.0.72.0/22
       - --entryPoints.traefik.address=:8080
       - --api=true
-      - --api.insecure=true     # ko talked about in tutorial but not in github
+ #     - --api.insecure=true     # ko talked about in tutorial but not in github
       # - --serversTransport.insecureSkipVerify=true
       - --log=true
       - --log.level=INFO    # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
@@ -130,7 +130,7 @@ services:
 # ko      - "traefik.http.routers.traefik-rtr.rule=HostHeader(`traefik.$DOMAINNAME`)"
       # ko till next ko these are the password authentification
       - "traefik.http.routers.traefik-rtr.tls=true"
-      - "traefik.http.routers.traefik-rtr.tls.certresolver=dns-cloudflare" # Comment out this line after first run of traefik to force the use of wildcard certs
+#      - "traefik.http.routers.traefik-rtr.tls.certresolver=dns-cloudflare" # Comment out this line after first run of traefik to force the use of wildcard certs
       - "traefik.http.routers.traefik-rtr.tls.domains[0].main=$DOMAINNAME"
       - "traefik.http.routers.traefik-rtr.tls.domains[0].sans=*.$DOMAINNAME"
       # ko /end
@@ -235,10 +235,11 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.portainer-rtr.entrypoints=https"
-      - "traefik.http.routers.portainer-rtr.rule=HostHeader(`portainer.$DOMAINNAME`)"
+      - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME`)" # was host header
+#      - "traefik.http.routers.portainer-rtr.rule=HostHeader(`portainer.$DOMAINNAME`)"
       ## Middlewares
-      - "traefik.http.routers.portainer-rtr.middlewares=chain-no-auth@file" # No Authentication
-      # - "traefik.http.routers.portainer-rtr.middlewares=chain-basic-auth@file" # Basic Authentication
+# ko      - "traefik.http.routers.portainer-rtr.middlewares=chain-no-auth@file" # No Authentication
+      - "traefik.http.routers.portainer-rtr.middlewares=chain-basic-auth@file" # Basic Authentication
       # - "traefik.http.routers.portainer-rtr.middlewares=chain-oauth@file" # Google OAuth 2.0
 # ko      - "traefik.http.routers.portainer-rtr.middlewares=chain-authelia@file" # Authelia
       ## HTTP Services
@@ -459,9 +460,11 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.phpmyadmin-rtr.entrypoints=https"
-      - "traefik.http.routers.phpmyadmin-rtr.rule=HostHeader(`pma.$DOMAINNAME`)"
+      - "traefik.http.routers.phpmyadmin-rtr.rule=Host(`pma.$DOMAINNAME`)"
+# ko      - "traefik.http.routers.phpmyadmin-rtr.rule=HostHeader(`pma.$DOMAINNAME`)"
       ## Middlewares
-      - "traefik.http.routers.phpmyadmin-rtr.middlewares=chain-authelia@file"
+#      - "traefik.http.routers.phpmyadmin-rtr.middlewares=chain-authelia@file" #  ko
+      - "traefik.http.routers.phpmyadmin-rtr.middlewares=middlewares-basic-auth@file"
       ## HTTP Services
       - "traefik.http.routers.phpmyadmin-rtr.service=phpmyadmin-svc"
       - "traefik.http.services.phpmyadmin-svc.loadbalancer.server.port=80"
