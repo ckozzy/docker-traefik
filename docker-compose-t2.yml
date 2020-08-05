@@ -15,20 +15,55 @@ networks:
     driver: bridge
 
 ########################### SECRETS
-# secrets:
-#   cloudflare_email:
-#     file: $SECRETSDIR/cloudflare_email
-#   cloudflare_api_key:
-#     file: $SECRETSDIR/cloudflare_api_key
-#   oauth_secret:
-#     file: $SECRETSDIR/oauth_secret
-#   google_client_secret:
-#     file: $SECRETSDIR/google_client_secret
-#   google_client_id:
-#     file: $SECRETSDIR/google_client_id
-#   my_email:
-#     file: $SECRETSDIR/my_email
-
+secrets:
+  cloudflare_email:
+    file: $SECRETSDIR/cloudflare_email
+  cloudflare_api_key:
+    file: $SECRETSDIR/cloudflare_api_key
+  cloudflare_api_token:
+    file: $SECRETSDIR/cloudflare_api_token
+  cloudflare_zoneid:
+    file: $SECRETSDIR/cloudflare_zoneid
+  oauth_secret:
+    file: $SECRETSDIR/oauth_secret
+  google_client_secret:
+    file: $SECRETSDIR/google_client_secret
+  google_client_id:
+    file: $SECRETSDIR/google_client_id
+  my_email:
+    file: $SECRETSDIR/my_email
+  mysql_root_password:
+    file: $SECRETSDIR/mysql_root_password
+  jdown_vnc_password:
+    file: $SECRETSDIR/jdown_vnc_password
+  ipvanish_username:
+    file: $SECRETSDIR/ipvanish_username
+  ipvanish_password:
+    file: $SECRETSDIR/ipvanish_password
+  transmission_rpc_username:
+    file: $SECRETSDIR/transmission_rpc_username
+  transmission_rpc_password:
+    file: $SECRETSDIR/transmission_rpc_password
+  plex_claim:
+    file: $SECRETSDIR/plex_claim
+  handbrake_vnc_password:
+    file: $SECRETSDIR/handbrake_vnc_password
+  mkvtoolnix_vnc_password:
+    file: $SECRETSDIR/mkvtoolnix_vnc_password
+  makemkv_vnc_password:
+    file: $SECRETSDIR/makemkv_vnc_password
+  filebot_vnc_password:
+    file: $SECRETSDIR/filebot_vnc_password
+  firefox_vnc_password:
+    file: $SECRETSDIR/firefox_vnc_password
+  qdirstat_vnc_password:
+    file: $SECRETSDIR/qdirstat_vnc_password
+  guac_mysql_user:
+    file: $SECRETSDIR/guac_mysql_user
+  guac_mysql_password:
+    file: $SECRETSDIR/guac_mysql_password
+  vscode_password:
+    file: $SECRETSDIR/vscode_password
 ########################### SERVICES
 services:
   ############################# FRONTENDS
@@ -51,23 +86,23 @@ services:
       - --entrypoints.https.forwardedHeaders.trustedIPs=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/12,172.64.0.0/13,131.0.72.0/22
       - --entryPoints.traefik.address=:8080
       - --api=true
- #     - --api.insecure=true     # ko talked about in tutorial but not in github
+ #     - --api.insecure=true
       # - --serversTransport.insecureSkipVerify=true
       - --log=true
       - --log.level=INFO    # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
       - --accessLog=true
       - --accessLog.filePath=/traefik.log
       - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
-#      - --accessLog.filters.statusCodes=400-499 # ko not in tutorial
+      - --accessLog.filters.statusCodes=400-499
       - --providers.docker=true
       - --providers.docker.endpoint=unix:///var/run/docker.sock
-# ko2      - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME`)
+      - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME`)
       - --providers.docker.exposedByDefault=false
       # - --entrypoints.https.http.middlewares=chain-authelia@file
       # Add dns-cloudflare as default certresolver for all services. Also enables TLS and no need to specify on individual services.
       - --entrypoints.https.http.tls.certresolver=dns-cloudflare
-      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME # ko in github not tutorial
-      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME # ko in github not tutorial
+      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME
+      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME
       # - --entrypoints.https.http.tls.domains[1].main=$DOMAIN # Pulls main cert for second domain
       # - --entrypoints.https.http.tls.domains[1].sans=*.$DOMAIN # Pulls wildcard cert for second domain
       - --providers.docker.network=t2_proxy
@@ -79,8 +114,8 @@ services:
       - --certificatesResolvers.dns-cloudflare.acme.email=$CLOUDFLARE_EMAIL
       - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
-      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53 # ko not in tutorial
-      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.delayBeforeCheck=90 # ko not in tutorial To delay DNS check and reduce LE hitrate
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.delayBeforeCheck=90
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.254 # You can specify a static IP
@@ -98,10 +133,10 @@ services:
         published: 443
         protocol: tcp
         mode: host
-      - target: 8080  # ko the following 4 lines commented out on github
-        published: 8080
-        protocol: tcp
-        mode: host
+      # - target: 8080
+      #   published: 8080
+      #   protocol: tcp
+      #   mode: host
     volumes:
       - $DOCKERDIR/traefik2/rules:/rules # file provider directory
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -109,14 +144,13 @@ services:
       - $DOCKERDIR/traefik2/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
       - $DOCKERDIR/shared:/shared
     environment:
-      # ko next two were in the git hub switching to tutorial
-      # - CF_API_EMAIL=/run/secrets/cloudflare_email
-      # - CF_API_KEY=/run/secrets/cloudflare_api_key
-      - CF_API_EMAIL=$CLOUDFLARE_EMAIL
-      - CF_API_KEY=$CLOUDFLARE_API_KEY
-    # secrets:                    # secrets not in tutorial
-    #   - cloudflare_email
-    #   - cloudflare_api_key
+      - CF_API_EMAIL=/run/secrets/cloudflare_email
+      - CF_API_KEY=/run/secrets/cloudflare_api_key
+      # - CF_API_EMAIL=$CLOUDFLARE_EMAIL
+      # - CF_API_KEY=$CLOUDFLARE_API_KEY
+    secrets:                    # secrets not in tutorial
+      - cloudflare_email
+      - cloudflare_api_key
     labels:
       - "traefik.enable=true"
       # HTTP-to-HTTPS Redirect
@@ -126,14 +160,12 @@ services:
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       # HTTP Routers
       - "traefik.http.routers.traefik-rtr.entrypoints=https"
-      - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME`)" # ko
-# ko      - "traefik.http.routers.traefik-rtr.rule=HostHeader(`traefik.$DOMAINNAME`)"
-      # ko till next ko these are the password authentification
-      - "traefik.http.routers.traefik-rtr.tls=true"
+      - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME`)"
+#ko
+#- "traefik.http.routers.traefik-rtr.tls=true"
 #      - "traefik.http.routers.traefik-rtr.tls.certresolver=dns-cloudflare" # Comment out this line after first run of traefik to force the use of wildcard certs
-      - "traefik.http.routers.traefik-rtr.tls.domains[0].main=$DOMAINNAME"
-      - "traefik.http.routers.traefik-rtr.tls.domains[0].sans=*.$DOMAINNAME"
-      # ko /end
+#      - "traefik.http.routers.traefik-rtr.tls.domains[0].main=$DOMAINNAME"
+#      - "traefik.http.routers.traefik-rtr.tls.domains[0].sans=*.$DOMAINNAME"
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       ## Middlewares
